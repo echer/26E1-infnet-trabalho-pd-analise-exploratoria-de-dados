@@ -1,0 +1,213 @@
+---
+title: "POS-GRADUAÇÃO - MBA Data Science em IA"
+subtitle: "Trabalho de Analise Exploratoria de Dados PD"
+author: "Alan C. Echer"
+date: "`r Sys.Date()`"
+format:
+  html: 
+    theme: darkly
+    toc: true
+    number-sections: true
+    fig-cap-location: bottom
+    echo: true
+    code-copy: true
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+# Escolha da Base de Dados
+
+A base escolhida foi o dataset de Detecção de Dengue (dados clinicos) - Disponível no kaggle: <https://www.kaggle.com/datasets/aravind3505/dengue-detection-dataset-clinical-data>
+
+Motivo da escolha: Possui variáveis numéricas, dados faltantes, permite análise entre variáveis.
+
+Resultados esperados: Identificar relações entre variáveis, analisar distribuição dos dados.
+
+# Pacotes
+
+```{r}
+library(summarytools)
+library(tidyverse)
+```
+
+# Carregamento da Base de Dados
+
+```{r}
+dados <- read.csv("data/dataset.csv")
+View(dados)
+```
+
+```{r}
+summary(dados)
+```
+
+```{r}
+descr(dados)
+```
+
+```{r}
+analyze_categorical <- function(column, label){
+  ggplot(data.frame(column), aes(x=column)) +
+    geom_bar(fill="lightblue") +
+    labs(
+      title=paste("Distribuição de", label),
+      x=label,
+      y="Frequência"
+    ) +
+    theme_minimal()
+}
+
+analyze_numerical <- function(column, columnLabel){
+
+  Q0 <- min(column, na.rm = TRUE)
+  Q1 <- as.numeric(quantile(column, 0.25, na.rm = TRUE))
+  Q2 <- as.numeric(quantile(column, 0.50, na.rm = TRUE))
+  Q3 <- as.numeric(quantile(column, 0.75, na.rm = TRUE))
+  Q4 <- as.numeric(quantile(column, 1.00, na.rm = TRUE))
+
+  IQR_val <- IQR(column, na.rm = TRUE)
+  
+  mean_val <- mean(column, na.rm = TRUE)
+  sd_val <- sd(column, na.rm = TRUE)
+  
+  # binwidth automático (Freedman-Diaconis)
+  n <- length(column)
+  binwidth <- 2 * IQR_val / (n^(1/3))
+
+  LI <- Q1 - 1.5 * IQR_val
+  LS <- Q3 + 1.5 * IQR_val
+  
+  cat("Média:",mean_val,"\n")
+  cat("Mediana:",Q2,"\n")
+  cat("Desvio padrão:",sd_val,"\n")
+  cat("Q1:",Q1,"\n")
+  cat("Q3:",Q3,"\n")
+  cat("IQR:",IQR_val,"\n")
+
+  # Boxplot
+  box <- ggplot(data.frame(column), aes(x = "", y = column)) +
+    geom_boxplot(fill = "lightblue") +
+    geom_hline(yintercept = LI, color = "red", linetype = "dashed") +
+    geom_hline(yintercept = LS, color = "blue", linetype = "dashed") +
+    geom_hline(yintercept = Q0, color = "orange", linetype = "dashed") +
+    geom_hline(yintercept = Q4, color = "orange", linetype = "dashed") +
+
+    annotate("text", x = 1.2, y = Q0, label = "(0%)") +
+    annotate("text", x = 1.2, y = Q1, label = paste("Q1 =", Q1)) +
+    annotate("text", x = 1.2, y = Q2, label = paste("Q2 =", Q2)) +
+    annotate("text", x = 1.2, y = Q3, label = paste("Q3 =", Q3)) +
+    annotate("text", x = 1.2, y = Q4, label = "(100%)") +
+
+    annotate("text", x = 1.2, y = LI, label = paste("Limite Inf:", round(LI,2))) +
+    annotate("text", x = 1.2, y = LS, label = paste("Limite Sup:", round(LS,2))) +
+
+    labs(title = paste("Boxplot -", columnLabel),
+         y = columnLabel,
+         x = "")+
+    scale_y_continuous(labels = scales::comma)
+
+  # Histograma
+  hist <- ggplot(data.frame(column), aes(x = column)) +
+    geom_histogram(binwidth = binwidth,
+                   aes(y=..density..),
+                   fill = "lightblue",
+                   color = "black") +
+    geom_density(color="darkblue", size=1) +
+    geom_vline(xintercept=mean_val,
+               color="red",
+               linetype="dashed") +
+    geom_vline(xintercept=Q2,
+               color="green",
+               linetype="dashed") +
+    labs(title = paste("Histograma -", columnLabel),
+         x = columnLabel,
+         y = "Frequência")+
+    scale_x_continuous(labels = scales::comma)
+  
+  qqplot <- ggplot(dados, aes(sample = column)) +
+    stat_qq() +
+    stat_qq_line(color = "red") +
+    labs(title = paste("QQPlot -", columnLabel))
+
+  print(box)
+  print(hist)
+  print(qqplot)
+
+}
+```
+
+## Análise da Variável Age
+
+A variável age apresenta alguns outliers acima do limite superior, incluindo um valor próximo de 120 anos. Apesar disso, média e mediana são próximas, indicando que os dados não são muito assimétricos.
+
+```{r}
+analyze_numerical(dados$age, "Age")
+```
+
+## Análise da Variável Hemoglobin Level
+
+A variável apresenta outliers acima do limite superior, com valores próximos de 25. Mesmo assim, média e mediana são próximas, indicando baixa assimetria.
+
+```{r}
+analyze_numerical(dados$hemoglobin_g_dl, "Hemoglobin Level")
+```
+
+## Análise da Variável White Blood Cell Count
+
+A variável apresenta outliers e dados faltantes. A diferença entre média e mediana indica leve assimetria, e a distribuição não parece normal.
+
+```{r}
+analyze_numerical(dados$wbc_count, "White Blood Cell Count")
+```
+
+## Análise da Variável Platelet Count
+
+A variável apresenta outliers e dados faltantes. A diferença entre média e mediana indica assimetria nos dados.
+
+```{r}
+analyze_numerical(dados$platelet_count, "Platelet Count")
+```
+
+## Análise da Variável Variation in Platelet
+
+A variável apresenta alguns outliers e dados faltantes, mas média e mediana próximas indicam baixa assimetria.
+
+```{r}
+analyze_numerical(dados$platelet_distribution_width, "Variation in Platelet")
+```
+
+## Análise da Variável Dengue
+
+A variável mostra a distribuição dos casos com e sem dengue.
+
+```{r}
+analyze_categorical(dados$dengue_label, "Target Variable")
+```
+
+## Análise da Variável Gender
+
+A variável apresenta a distribuição de gênero na base, podendo indicar possível desbalanceamento.
+
+```{r}
+analyze_categorical(dados$gender, "Gender")
+```
+
+## Análise da Variável Differential Count
+
+A variável apresenta a distribuição das categorias relacionadas à contagem diferencial. A análise permite observar a frequência de cada grupo e identificar possíveis desbalanceamentos.
+
+```{r}
+dados$differential_count = as.factor(dados$differential_count)
+analyze_categorical(dados$differential_count, "Diff White Blood Cell Count")
+```
+
+## Análise da Variável Red Blood Cell Count
+
+A variável apresenta a distribuição das categorias relacionadas à contagem de glóbulos vermelhos. É possível observar a proporção entre os grupos e verificar possíveis diferenças entre eles.
+
+```{r}
+dados$rbc_count = as.factor(dados$rbc_count)
+analyze_categorical(dados$rbc_count, "Red Blood Cell Count")
+```
