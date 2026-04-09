@@ -30,6 +30,8 @@ Resultados esperados: Identificar relações entre variáveis, analisar distribu
 ```{r}
 library(summarytools)
 library(tidyverse)
+library(GGally)
+library(mice)
 ```
 
 # Carregamento da Base de Dados
@@ -138,6 +140,46 @@ analyze_numerical <- function(column, columnLabel){
 }
 ```
 
+## Análise de Colunas com Dados Nullos
+
+As colunas com dados nullos foram poucas:
+
+```         
+wbc_count: 24
+```
+
+```         
+platelet_count: 16
+```
+
+```         
+platelet_distribution_width: 19
+```
+
+```{r}
+colSums(is.na(dados))
+```
+
+## Completude de dados
+
+Os dados estão em sua maioria preenchidos a nao ser pelos poucos dados faltantes das colunas acima.
+
+```         
+platelet_count: 98%
+```
+
+```         
+platelet_distribution_width: 98%
+```
+
+```         
+wbc_count: 97%
+```
+
+```{r}
+colMeans(!is.na(dados))
+```
+
 ## Análise da Variável Age
 
 A variável age apresenta alguns outliers acima do limite superior, incluindo um valor próximo de 120 anos. Apesar disso, média e mediana são próximas, indicando que os dados não são muito assimétricos.
@@ -210,4 +252,42 @@ A variável apresenta a distribuição das categorias relacionadas à contagem d
 ```{r}
 dados$rbc_count = as.factor(dados$rbc_count)
 analyze_categorical(dados$rbc_count, "Red Blood Cell Count")
+```
+
+# Remoção de colunas categóricas
+
+```{r}
+dados <- dados[, sapply(dados, is.numeric)]
+```
+
+# Tratamento de Valores Nullos
+
+Para tratar os dados faltantes, foi utilizada a técnica de imputação por meio do pacote MICE. O método utilizado foi o Predictive Mean Matching (PMM), que estima valores ausentes com base em valores observados semelhantes, preservando a distribuição dos dados. Foram realizadas 5 imputações (m=5). O parâmetro seed foi utilizado para garantir a reprodutibilidade dos resultados.
+
+```{r}
+dados = complete(mice(dados, m=5, method="pmm", seed=123))
+```
+
+Verificamos novamente se existem valores nullos
+
+```{r}
+colSums(is.na(dados))
+```
+
+# Análise de pares
+
+```{r}
+ggpairs(dados)
+```
+
+A partir da matriz de espalhamento, observa-se que as variáveis mais correlacionadas são platelet_count e wbc_count (corr ≈ 0.749), indicando uma forte relação positiva.
+
+Também há correlação moderada entre platelet_count e platelet_distribution_width (corr ≈ 0.456) e entre wbc_count e platelet_distribution_width (corr ≈ 0.350).
+
+Em relação à variável alvo, observa-se correlação negativa com platelet_count (corr ≈ -0.577) e platelet_distribution_width (corr ≈ -0.651).
+
+As demais variáveis apresentam correlações fracas.
+
+```{r}
+shapiro.test(dados$age)
 ```
