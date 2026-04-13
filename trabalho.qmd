@@ -21,6 +21,10 @@ execute:
 
 A base escolhida foi o dataset de Detecção de Dengue (dados clinicos) - Disponível no kaggle: <https://www.kaggle.com/datasets/aravind3505/dengue-detection-dataset-clinical-data>
 
+![Imagen dataset Dengue](https://storage.googleapis.com/kaggle-datasets-images/9801950/15325425/2cff7d54fd29a999223d94078bbdc0be/dataset-cover.png?t=2026-03-23-04-00-42)
+
+![](kaggle-dataset.png)
+
 Motivo da escolha: Possui variáveis numéricas, dados faltantes, permite análise entre variáveis.
 
 Resultados esperados: Identificar relações entre variáveis, analisar distribuição dos dados.
@@ -32,13 +36,15 @@ library(summarytools)
 library(tidyverse)
 library(GGally)
 library(mice)
+library(ggpubr)
+library(shiny)
 ```
 
 # Carregamento da Base de Dados
 
 ```{r}
 dados <- read.csv("data/dataset.csv")
-View(dados)
+#View(dados)
 ```
 
 ```{r}
@@ -128,14 +134,14 @@ analyze_numerical <- function(column, columnLabel){
          y = "Frequência")+
     scale_x_continuous(labels = scales::comma)
   
-  qqplot <- ggplot(dados, aes(sample = column)) +
-    stat_qq() +
-    stat_qq_line(color = "red") +
-    labs(title = paste("QQPlot -", columnLabel))
+  qqplot <- ggqqplot(column)
+  
+  shapiro_test <- shapiro.test(column)
 
   print(box)
   print(hist)
   print(qqplot)
+  print(shapiro_test)
 
 }
 ```
@@ -164,6 +170,10 @@ colSums(is.na(dados))
 
 Os dados estão em sua maioria preenchidos a nao ser pelos poucos dados faltantes das colunas acima.
 
+Na minha visão, a completude impacta diretamente a análise exploratória, pois a presença de dados faltantes reduz a quantidade de informações disponíveis e pode comprometer os resultados.
+
+Durante a análise, percebo que valores ausentes podem distorcer medidas estatísticas, dificultar a identificação de padrões e influenciar a interpretação dos dados.
+
 ```         
 platelet_count: 98%
 ```
@@ -174,6 +184,30 @@ platelet_distribution_width: 98%
 
 ```         
 wbc_count: 97%
+```
+
+```         
+age: 100%
+```
+
+```         
+hemoglobin_g_dl: 100% 
+```
+
+```         
+differential_count: 100%
+```
+
+```         
+dengue_label: 100%
+```
+
+```         
+gender: 100%
+```
+
+```         
+rbc_count: 100%
 ```
 
 ```{r}
@@ -277,17 +311,102 @@ colSums(is.na(dados))
 # Análise de pares
 
 ```{r}
-ggpairs(dados)
+ggpairs(
+  dados,
+  
+  lower = list(
+    continuous = wrap("points") +
+      scale_x_continuous(labels = scales::comma) +
+      scale_y_continuous(labels = scales::comma)
+  ),
+  
+  diag = list(
+    continuous = wrap("densityDiag") +
+      scale_x_continuous(labels = scales::comma)
+  ),
+  
+  upper = list(
+    continuous = wrap("cor", size = 4)
+  )
+)+ theme(axis.text = element_text())
 ```
 
-A partir da matriz de espalhamento, observa-se que as variáveis mais correlacionadas são platelet_count e wbc_count (corr ≈ 0.749), indicando uma forte relação positiva.
+A partir da análise visual da matriz de espalhamento as maiores correlações foram encontradas entre platelet_count e wbc_count, seguidas pelas relações com dengue_label e platelet_distribution_width, platelet_count e dengue_label, e platelet_count e platelet_distribution_width. As demais variáveis apresentam baixa correlação.\
+\
+1. platelet_count × wbc_count → corr ≈ 0.749\
+2. platelet_distribution_width × dengue_label → corr ≈ -0.651\
+3. platelet_count × dengue_label → corr ≈ -0.577\
+4. platelet_count × platelet_distribution_width → corr ≈ 0.456
 
-Também há correlação moderada entre platelet_count e platelet_distribution_width (corr ≈ 0.456) e entre wbc_count e platelet_distribution_width (corr ≈ 0.350).
+# Resultado da Análise
 
-Em relação à variável alvo, observa-se correlação negativa com platelet_count (corr ≈ -0.577) e platelet_distribution_width (corr ≈ -0.651).
+## Distribuições normais
 
-As demais variáveis apresentam correlações fracas.
+Com base na análise, observei que as variáveis age e hemoglobin_g_dl apresentam comportamento mais próximo de uma distribuição normal, com menor assimetria. Por outro lado, as variáveis wbc_count, platelet_count e platelet_distribution_width apresentam comportamento semelhante, com assimetria e presença de valores extremos, afastando-se da normalidade.
+
+## Histogramas
+
+A partir da análise dos histogramas, observa-se que as variáveis age e hemoglobin_g_dl apresentam distribuição mais próxima da simétrica, com concentração de valores centrais e baixa assimetria. Por outro lado, as variáveis wbc_count, platelet_count e platelet_distribution_width apresentam comportamento semelhante, com assimetria à direita, indicando maior concentração de valores baixos e presença de cauda para valores elevados.
+
+## Justificativa dos Bins
+
+O número de bins utilizado nos histogramas foi definido automaticamente com base na regra de Freedman-Diaconis, considerando a variabilidade e o tamanho da amostra. Essa abordagem foi aplicada de forma consistente para todas as variáveis, garantindo um equilíbrio entre detalhamento e clareza visual, independentemente das diferenças de escala e dispersão entre elas.
+
+## Shapiro-Wilk
+
+O teste de Shapiro-Wilk indicou p-values menores que 0.05 para todas as variáveis, sugerindo não normalidade. No entanto, como a base de dados possui um número elevado de observações, o teste tende a ser muito sensível. Dessa forma, a análise foi complementada com histogramas e gráficos Q-Q, que indicaram que algumas variáveis apresentam comportamento próximo à normalidade, conforme descrito acima.
+
+# Dashboard Interativo
+
+Foi desenvolvido um dashboard interativo utilizando o pacote Shiny, permitindo a seleção de variáveis numéricas da base de dados, o usuário pode escolher a variável a ser analisada, definir a cor do gráfico de linha e ajustar os limites dos eixos X e Y, possibilitando uma visualização dinâmica dos dados.
 
 ```{r}
-shapiro.test(dados$age)
+
+ui <- fluidPage(
+  
+  titlePanel("Dashboard - Análise de Dados"),
+  
+  sidebarLayout(
+    sidebarPanel(
+      
+      selectInput("variavel", "Selecione a variável:",
+                  choices = names(dados)[sapply(dados, is.numeric)]),
+      
+      selectInput("cor", "Escolha a cor:",
+                  choices = c("blue", "red", "green", "black")),
+      
+      numericInput("xmin", "Limite inferior X:", value = 1),
+      numericInput("xmax", "Limite superior X:", value = 100),
+      
+      numericInput("ymin", "Limite inferior Y:", value = 0),
+      numericInput("ymax", "Limite superior Y:", value = 100000)
+    ),
+    
+    mainPanel(
+      plotOutput("grafico")
+    )
+  )
+)
+
+server <- function(input, output) {
+  
+  output$grafico <- renderPlot({
+    
+    var <- dados[[input$variavel]]
+    
+    df <- data.frame(x = 1:length(var), y = var)
+    
+    ggplot(df, aes(x = x, y = y)) +
+      geom_line(color = input$cor) +
+      xlim(input$xmin, input$xmax) +
+      ylim(input$ymin, input$ymax) +
+      labs(title = paste("Gráfico de", input$variavel),
+           x = "Índice",
+           y = input$variavel)
+  })
+}
+
+shinyApp(ui = ui, server = server)
 ```
+
+![](shiny-dashboard.png)

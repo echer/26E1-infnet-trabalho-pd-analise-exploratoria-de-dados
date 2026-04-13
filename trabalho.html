@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Alan C. Echer">
-<meta name="dcterms.date" content="2026-04-09">
+<meta name="dcterms.date" content="2026-04-13">
 
 <title>POS-GRADUAÇÃO - MBA Data Science em IA</title>
 <style>
@@ -103,6 +103,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#remoção-de-colunas-categóricas" id="toc-remoção-de-colunas-categóricas" class="nav-link" data-scroll-target="#remoção-de-colunas-categóricas"><span class="header-section-number">4</span> Remoção de colunas categóricas</a></li>
   <li><a href="#tratamento-de-valores-nullos" id="toc-tratamento-de-valores-nullos" class="nav-link" data-scroll-target="#tratamento-de-valores-nullos"><span class="header-section-number">5</span> Tratamento de Valores Nullos</a></li>
   <li><a href="#análise-de-pares" id="toc-análise-de-pares" class="nav-link" data-scroll-target="#análise-de-pares"><span class="header-section-number">6</span> Análise de pares</a></li>
+  <li><a href="#resultado-da-análise" id="toc-resultado-da-análise" class="nav-link" data-scroll-target="#resultado-da-análise"><span class="header-section-number">7</span> Resultado da Análise</a>
+  <ul class="collapse">
+  <li><a href="#distribuições-normais" id="toc-distribuições-normais" class="nav-link" data-scroll-target="#distribuições-normais"><span class="header-section-number">7.1</span> Distribuições normais</a></li>
+  <li><a href="#histogramas" id="toc-histogramas" class="nav-link" data-scroll-target="#histogramas"><span class="header-section-number">7.2</span> Histogramas</a></li>
+  <li><a href="#justificativa-dos-bins" id="toc-justificativa-dos-bins" class="nav-link" data-scroll-target="#justificativa-dos-bins"><span class="header-section-number">7.3</span> Justificativa dos Bins</a></li>
+  <li><a href="#shapiro-wilk" id="toc-shapiro-wilk" class="nav-link" data-scroll-target="#shapiro-wilk"><span class="header-section-number">7.4</span> Shapiro-Wilk</a></li>
+  </ul></li>
+  <li><a href="#dashboard-interativo" id="toc-dashboard-interativo" class="nav-link" data-scroll-target="#dashboard-interativo"><span class="header-section-number">8</span> Dashboard Interativo</a></li>
   </ul>
 </nav>
 </div>
@@ -128,7 +136,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">April 9, 2026</p>
+      <p class="date">April 13, 2026</p>
     </div>
   </div>
   
@@ -143,6 +151,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="escolha-da-base-de-dados" class="level1" data-number="1">
 <h1 data-number="1"><span class="header-section-number">1</span> Escolha da Base de Dados</h1>
 <p>A base escolhida foi o dataset de Detecção de Dengue (dados clinicos) - Disponível no kaggle: <a href="https://www.kaggle.com/datasets/aravind3505/dengue-detection-dataset-clinical-data" class="uri">https://www.kaggle.com/datasets/aravind3505/dengue-detection-dataset-clinical-data</a></p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://storage.googleapis.com/kaggle-datasets-images/9801950/15325425/2cff7d54fd29a999223d94078bbdc0be/dataset-cover.png?t=2026-03-23-04-00-42" class="img-fluid figure-img"></p>
+<figcaption>Imagen dataset Dengue</figcaption>
+</figure>
+</div>
+<p><img src="kaggle-dataset.png" class="img-fluid"></p>
 <p>Motivo da escolha: Possui variáveis numéricas, dados faltantes, permite análise entre variáveis.</p>
 <p>Resultados esperados: Identificar relações entre variáveis, analisar distribuição dos dados.</p>
 </section>
@@ -152,14 +167,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(summarytools)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(GGally)</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mice)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mice)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggpubr)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(shiny)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="carregamento-da-base-de-dados" class="level1" data-number="3">
 <h1 data-number="3"><span class="header-section-number">3</span> Carregamento da Base de Dados</h1>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>dados <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"data/dataset.csv"</span>)</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">View</span>(dados)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co">#View(dados)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(dados)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -319,14 +336,14 @@ Table: Table continues below
 <span id="cb7-76"><a href="#cb7-76" aria-hidden="true" tabindex="-1"></a>         <span class="at">y =</span> <span class="st">"Frequência"</span>)<span class="sc">+</span></span>
 <span id="cb7-77"><a href="#cb7-77" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_x_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span>comma)</span>
 <span id="cb7-78"><a href="#cb7-78" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb7-79"><a href="#cb7-79" aria-hidden="true" tabindex="-1"></a>  qqplot <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(dados, <span class="fu">aes</span>(<span class="at">sample =</span> column)) <span class="sc">+</span></span>
-<span id="cb7-80"><a href="#cb7-80" aria-hidden="true" tabindex="-1"></a>    <span class="fu">stat_qq</span>() <span class="sc">+</span></span>
-<span id="cb7-81"><a href="#cb7-81" aria-hidden="true" tabindex="-1"></a>    <span class="fu">stat_qq_line</span>(<span class="at">color =</span> <span class="st">"red"</span>) <span class="sc">+</span></span>
-<span id="cb7-82"><a href="#cb7-82" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="fu">paste</span>(<span class="st">"QQPlot -"</span>, columnLabel))</span>
-<span id="cb7-83"><a href="#cb7-83" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-84"><a href="#cb7-84" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(box)</span>
-<span id="cb7-85"><a href="#cb7-85" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(hist)</span>
-<span id="cb7-86"><a href="#cb7-86" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(qqplot)</span>
+<span id="cb7-79"><a href="#cb7-79" aria-hidden="true" tabindex="-1"></a>  qqplot <span class="ot">&lt;-</span> <span class="fu">ggqqplot</span>(column)</span>
+<span id="cb7-80"><a href="#cb7-80" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb7-81"><a href="#cb7-81" aria-hidden="true" tabindex="-1"></a>  shapiro_test <span class="ot">&lt;-</span> <span class="fu">shapiro.test</span>(column)</span>
+<span id="cb7-82"><a href="#cb7-82" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-83"><a href="#cb7-83" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(box)</span>
+<span id="cb7-84"><a href="#cb7-84" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(hist)</span>
+<span id="cb7-85"><a href="#cb7-85" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(qqplot)</span>
+<span id="cb7-86"><a href="#cb7-86" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(shapiro_test)</span>
 <span id="cb7-87"><a href="#cb7-87" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-88"><a href="#cb7-88" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
@@ -355,8 +372,19 @@ Table: Table continues below
 <section id="completude-de-dados" class="level2" data-number="3.2">
 <h2 data-number="3.2" class="anchored" data-anchor-id="completude-de-dados"><span class="header-section-number">3.2</span> Completude de dados</h2>
 <p>Os dados estão em sua maioria preenchidos a nao ser pelos poucos dados faltantes das colunas acima.</p>
+<p>Na minha visão, a completude impacta diretamente a análise exploratória, pois a presença de dados faltantes reduz a quantidade de informações disponíveis e pode comprometer os resultados.</p>
+<p>Durante a análise, percebo que valores ausentes podem distorcer medidas estatísticas, dificultar a identificação de padrões e influenciar a interpretação dos dados.</p>
+<pre><code>platelet_count: 98%</code></pre>
+<pre><code>platelet_distribution_width: 98%</code></pre>
+<pre><code>wbc_count: 97%</code></pre>
+<pre><code>age: 100%</code></pre>
+<pre><code>hemoglobin_g_dl: 100% </code></pre>
+<pre><code>differential_count: 100%</code></pre>
+<pre><code>dengue_label: 100%</code></pre>
+<pre><code>gender: 100%</code></pre>
+<pre><code>rbc_count: 100%</code></pre>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">colMeans</span>(<span class="sc">!</span><span class="fu">is.na</span>(dados))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">colMeans</span>(<span class="sc">!</span><span class="fu">is.na</span>(dados))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>                        age                      gender 
                   1.0000000                   1.0000000 
@@ -375,7 +403,7 @@ Table: Table continues below
 <h2 data-number="3.3" class="anchored" data-anchor-id="análise-da-variável-age"><span class="header-section-number">3.3</span> Análise da Variável Age</h2>
 <p>A variável age apresenta alguns outliers acima do limite superior, incluindo um valor próximo de 120 anos. Apesar disso, média e mediana são próximas, indicando que os dados não são muito assimétricos.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">analyze_numerical</span>(dados<span class="sc">$</span>age, <span class="st">"Age"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">analyze_numerical</span>(dados<span class="sc">$</span>age, <span class="st">"Age"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Média: 42.19919 
 Mediana: 40 
@@ -405,13 +433,20 @@ IQR: 28 </code></pre>
 </figure>
 </div>
 </div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    Shapiro-Wilk normality test
+
+data:  column
+W = 0.97524, p-value = 6.081e-12</code></pre>
+</div>
 </div>
 </section>
 <section id="análise-da-variável-hemoglobin-level" class="level2" data-number="3.4">
 <h2 data-number="3.4" class="anchored" data-anchor-id="análise-da-variável-hemoglobin-level"><span class="header-section-number">3.4</span> Análise da Variável Hemoglobin Level</h2>
 <p>A variável apresenta outliers acima do limite superior, com valores próximos de 25. Mesmo assim, média e mediana são próximas, indicando baixa assimetria.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">analyze_numerical</span>(dados<span class="sc">$</span>hemoglobin_g_dl, <span class="st">"Hemoglobin Level"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">analyze_numerical</span>(dados<span class="sc">$</span>hemoglobin_g_dl, <span class="st">"Hemoglobin Level"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Média: 13.71294 
 Mediana: 13.7 
@@ -441,13 +476,20 @@ IQR: 2.4 </code></pre>
 </figure>
 </div>
 </div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    Shapiro-Wilk normality test
+
+data:  column
+W = 0.94491, p-value &lt; 2.2e-16</code></pre>
+</div>
 </div>
 </section>
 <section id="análise-da-variável-white-blood-cell-count" class="level2" data-number="3.5">
 <h2 data-number="3.5" class="anchored" data-anchor-id="análise-da-variável-white-blood-cell-count"><span class="header-section-number">3.5</span> Análise da Variável White Blood Cell Count</h2>
 <p>A variável apresenta outliers e dados faltantes. A diferença entre média e mediana indica leve assimetria, e a distribuição não parece normal.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">analyze_numerical</span>(dados<span class="sc">$</span>wbc_count, <span class="st">"White Blood Cell Count"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">analyze_numerical</span>(dados<span class="sc">$</span>wbc_count, <span class="st">"White Blood Cell Count"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Média: 4338.031 
 Mediana: 3200 
@@ -477,13 +519,20 @@ IQR: 3600 </code></pre>
 </figure>
 </div>
 </div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    Shapiro-Wilk normality test
+
+data:  column
+W = 0.80885, p-value &lt; 2.2e-16</code></pre>
+</div>
 </div>
 </section>
 <section id="análise-da-variável-platelet-count" class="level2" data-number="3.6">
 <h2 data-number="3.6" class="anchored" data-anchor-id="análise-da-variável-platelet-count"><span class="header-section-number">3.6</span> Análise da Variável Platelet Count</h2>
 <p>A variável apresenta outliers e dados faltantes. A diferença entre média e mediana indica assimetria nos dados.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">analyze_numerical</span>(dados<span class="sc">$</span>platelet_count, <span class="st">"Platelet Count"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fu">analyze_numerical</span>(dados<span class="sc">$</span>platelet_count, <span class="st">"Platelet Count"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Média: 114702.2 
 Mediana: 93000 
@@ -513,13 +562,20 @@ IQR: 116500 </code></pre>
 </figure>
 </div>
 </div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    Shapiro-Wilk normality test
+
+data:  column
+W = 0.87991, p-value &lt; 2.2e-16</code></pre>
+</div>
 </div>
 </section>
 <section id="análise-da-variável-variation-in-platelet" class="level2" data-number="3.7">
 <h2 data-number="3.7" class="anchored" data-anchor-id="análise-da-variável-variation-in-platelet"><span class="header-section-number">3.7</span> Análise da Variável Variation in Platelet</h2>
 <p>A variável apresenta alguns outliers e dados faltantes, mas média e mediana próximas indicam baixa assimetria.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">analyze_numerical</span>(dados<span class="sc">$</span>platelet_distribution_width, <span class="st">"Variation in Platelet"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="fu">analyze_numerical</span>(dados<span class="sc">$</span>platelet_distribution_width, <span class="st">"Variation in Platelet"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Média: 22.84887 
 Mediana: 17.8 
@@ -549,13 +605,20 @@ IQR: 14.2 </code></pre>
 </figure>
 </div>
 </div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    Shapiro-Wilk normality test
+
+data:  column
+W = 0.65462, p-value &lt; 2.2e-16</code></pre>
+</div>
 </div>
 </section>
 <section id="análise-da-variável-dengue" class="level2" data-number="3.8">
 <h2 data-number="3.8" class="anchored" data-anchor-id="análise-da-variável-dengue"><span class="header-section-number">3.8</span> Análise da Variável Dengue</h2>
 <p>A variável mostra a distribuição dos casos com e sem dengue.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">analyze_categorical</span>(dados<span class="sc">$</span>dengue_label, <span class="st">"Target Variable"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="fu">analyze_categorical</span>(dados<span class="sc">$</span>dengue_label, <span class="st">"Target Variable"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -569,7 +632,7 @@ IQR: 14.2 </code></pre>
 <h2 data-number="3.9" class="anchored" data-anchor-id="análise-da-variável-gender"><span class="header-section-number">3.9</span> Análise da Variável Gender</h2>
 <p>A variável apresenta a distribuição de gênero na base, podendo indicar possível desbalanceamento.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">analyze_categorical</span>(dados<span class="sc">$</span>gender, <span class="st">"Gender"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="fu">analyze_categorical</span>(dados<span class="sc">$</span>gender, <span class="st">"Gender"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -583,8 +646,8 @@ IQR: 14.2 </code></pre>
 <h2 data-number="3.10" class="anchored" data-anchor-id="análise-da-variável-differential-count"><span class="header-section-number">3.10</span> Análise da Variável Differential Count</h2>
 <p>A variável apresenta a distribuição das categorias relacionadas à contagem diferencial. A análise permite observar a frequência de cada grupo e identificar possíveis desbalanceamentos.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>dados<span class="sc">$</span>differential_count <span class="ot">=</span> <span class="fu">as.factor</span>(dados<span class="sc">$</span>differential_count)</span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="fu">analyze_categorical</span>(dados<span class="sc">$</span>differential_count, <span class="st">"Diff White Blood Cell Count"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>dados<span class="sc">$</span>differential_count <span class="ot">=</span> <span class="fu">as.factor</span>(dados<span class="sc">$</span>differential_count)</span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a><span class="fu">analyze_categorical</span>(dados<span class="sc">$</span>differential_count, <span class="st">"Diff White Blood Cell Count"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -598,8 +661,8 @@ IQR: 14.2 </code></pre>
 <h2 data-number="3.11" class="anchored" data-anchor-id="análise-da-variável-red-blood-cell-count"><span class="header-section-number">3.11</span> Análise da Variável Red Blood Cell Count</h2>
 <p>A variável apresenta a distribuição das categorias relacionadas à contagem de glóbulos vermelhos. É possível observar a proporção entre os grupos e verificar possíveis diferenças entre eles.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>dados<span class="sc">$</span>rbc_count <span class="ot">=</span> <span class="fu">as.factor</span>(dados<span class="sc">$</span>rbc_count)</span>
-<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="fu">analyze_categorical</span>(dados<span class="sc">$</span>rbc_count, <span class="st">"Red Blood Cell Count"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>dados<span class="sc">$</span>rbc_count <span class="ot">=</span> <span class="fu">as.factor</span>(dados<span class="sc">$</span>rbc_count)</span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a><span class="fu">analyze_categorical</span>(dados<span class="sc">$</span>rbc_count, <span class="st">"Red Blood Cell Count"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -613,14 +676,14 @@ IQR: 14.2 </code></pre>
 <section id="remoção-de-colunas-categóricas" class="level1" data-number="4">
 <h1 data-number="4"><span class="header-section-number">4</span> Remoção de colunas categóricas</h1>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>dados <span class="ot">&lt;-</span> dados[, <span class="fu">sapply</span>(dados, is.numeric)]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>dados <span class="ot">&lt;-</span> dados[, <span class="fu">sapply</span>(dados, is.numeric)]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="tratamento-de-valores-nullos" class="level1" data-number="5">
 <h1 data-number="5"><span class="header-section-number">5</span> Tratamento de Valores Nullos</h1>
 <p>Para tratar os dados faltantes, foi utilizada a técnica de imputação por meio do pacote MICE. O método utilizado foi o Predictive Mean Matching (PMM), que estima valores ausentes com base em valores observados semelhantes, preservando a distribuição dos dados. Foram realizadas 5 imputações (m=5). O parâmetro seed foi utilizado para garantir a reprodutibilidade dos resultados.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>dados <span class="ot">=</span> <span class="fu">complete</span>(<span class="fu">mice</span>(dados, <span class="at">m=</span><span class="dv">5</span>, <span class="at">method=</span><span class="st">"pmm"</span>, <span class="at">seed=</span><span class="dv">123</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>dados <span class="ot">=</span> <span class="fu">complete</span>(<span class="fu">mice</span>(dados, <span class="at">m=</span><span class="dv">5</span>, <span class="at">method=</span><span class="st">"pmm"</span>, <span class="at">seed=</span><span class="dv">123</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
  iter imp variable
@@ -653,7 +716,7 @@ IQR: 14.2 </code></pre>
 </div>
 <p>Verificamos novamente se existem valores nullos</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">colSums</span>(<span class="fu">is.na</span>(dados))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="fu">colSums</span>(<span class="fu">is.na</span>(dados))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>                        age             hemoglobin_g_dl 
                           0                           0 
@@ -667,7 +730,24 @@ platelet_distribution_width                dengue_label
 <section id="análise-de-pares" class="level1" data-number="6">
 <h1 data-number="6"><span class="header-section-number">6</span> Análise de pares</h1>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggpairs</span>(dados)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggpairs</span>(</span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>  dados,</span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">lower =</span> <span class="fu">list</span>(</span>
+<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">continuous =</span> <span class="fu">wrap</span>(<span class="st">"points"</span>) <span class="sc">+</span></span>
+<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a>      <span class="fu">scale_x_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span>comma) <span class="sc">+</span></span>
+<span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a>      <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span>comma)</span>
+<span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb48-9"><a href="#cb48-9" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb48-10"><a href="#cb48-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">diag =</span> <span class="fu">list</span>(</span>
+<span id="cb48-11"><a href="#cb48-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">continuous =</span> <span class="fu">wrap</span>(<span class="st">"densityDiag"</span>) <span class="sc">+</span></span>
+<span id="cb48-12"><a href="#cb48-12" aria-hidden="true" tabindex="-1"></a>      <span class="fu">scale_x_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span>comma)</span>
+<span id="cb48-13"><a href="#cb48-13" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb48-14"><a href="#cb48-14" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb48-15"><a href="#cb48-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">upper =</span> <span class="fu">list</span>(</span>
+<span id="cb48-16"><a href="#cb48-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">continuous =</span> <span class="fu">wrap</span>(<span class="st">"cor"</span>, <span class="at">size =</span> <span class="dv">4</span>)</span>
+<span id="cb48-17"><a href="#cb48-17" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb48-18"><a href="#cb48-18" aria-hidden="true" tabindex="-1"></a>)<span class="sc">+</span> <span class="fu">theme</span>(<span class="at">axis.text =</span> <span class="fu">element_text</span>())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -676,6 +756,86 @@ platelet_distribution_width                dengue_label
 </div>
 </div>
 </div>
+<p>A partir da análise visual da matriz de espalhamento as maiores correlações foram encontradas entre platelet_count e wbc_count, seguidas pelas relações com dengue_label e platelet_distribution_width, platelet_count e dengue_label, e platelet_count e platelet_distribution_width. As demais variáveis apresentam baixa correlação.<br>
+<br>
+1. platelet_count × wbc_count → corr ≈ 0.749<br>
+2. platelet_distribution_width × dengue_label → corr ≈ -0.651<br>
+3. platelet_count × dengue_label → corr ≈ -0.577<br>
+4. platelet_count × platelet_distribution_width → corr ≈ 0.456</p>
+</section>
+<section id="resultado-da-análise" class="level1" data-number="7">
+<h1 data-number="7"><span class="header-section-number">7</span> Resultado da Análise</h1>
+<section id="distribuições-normais" class="level2" data-number="7.1">
+<h2 data-number="7.1" class="anchored" data-anchor-id="distribuições-normais"><span class="header-section-number">7.1</span> Distribuições normais</h2>
+<p>Com base na análise, observei que as variáveis age e hemoglobin_g_dl apresentam comportamento mais próximo de uma distribuição normal, com menor assimetria. Por outro lado, as variáveis wbc_count, platelet_count e platelet_distribution_width apresentam comportamento semelhante, com assimetria e presença de valores extremos, afastando-se da normalidade.</p>
+</section>
+<section id="histogramas" class="level2" data-number="7.2">
+<h2 data-number="7.2" class="anchored" data-anchor-id="histogramas"><span class="header-section-number">7.2</span> Histogramas</h2>
+<p>A partir da análise dos histogramas, observa-se que as variáveis age e hemoglobin_g_dl apresentam distribuição mais próxima da simétrica, com concentração de valores centrais e baixa assimetria. Por outro lado, as variáveis wbc_count, platelet_count e platelet_distribution_width apresentam comportamento semelhante, com assimetria à direita, indicando maior concentração de valores baixos e presença de cauda para valores elevados.</p>
+</section>
+<section id="justificativa-dos-bins" class="level2" data-number="7.3">
+<h2 data-number="7.3" class="anchored" data-anchor-id="justificativa-dos-bins"><span class="header-section-number">7.3</span> Justificativa dos Bins</h2>
+<p>O número de bins utilizado nos histogramas foi definido automaticamente com base na regra de Freedman-Diaconis, considerando a variabilidade e o tamanho da amostra. Essa abordagem foi aplicada de forma consistente para todas as variáveis, garantindo um equilíbrio entre detalhamento e clareza visual, independentemente das diferenças de escala e dispersão entre elas.</p>
+</section>
+<section id="shapiro-wilk" class="level2" data-number="7.4">
+<h2 data-number="7.4" class="anchored" data-anchor-id="shapiro-wilk"><span class="header-section-number">7.4</span> Shapiro-Wilk</h2>
+<p>O teste de Shapiro-Wilk indicou p-values menores que 0.05 para todas as variáveis, sugerindo não normalidade. No entanto, como a base de dados possui um número elevado de observações, o teste tende a ser muito sensível. Dessa forma, a análise foi complementada com histogramas e gráficos Q-Q, que indicaram que algumas variáveis apresentam comportamento próximo à normalidade, conforme descrito acima.</p>
+</section>
+</section>
+<section id="dashboard-interativo" class="level1" data-number="8">
+<h1 data-number="8"><span class="header-section-number">8</span> Dashboard Interativo</h1>
+<p>Foi desenvolvido um dashboard interativo utilizando o pacote Shiny, permitindo a seleção de variáveis numéricas da base de dados, o usuário pode escolher a variável a ser analisada, definir a cor do gráfico de linha e ajustar os limites dos eixos X e Y, possibilitando uma visualização dinâmica dos dados.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a>ui <span class="ot">&lt;-</span> <span class="fu">fluidPage</span>(</span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">titlePanel</span>(<span class="st">"Dashboard - Análise de Dados"</span>),</span>
+<span id="cb49-4"><a href="#cb49-4" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb49-5"><a href="#cb49-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sidebarLayout</span>(</span>
+<span id="cb49-6"><a href="#cb49-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sidebarPanel</span>(</span>
+<span id="cb49-7"><a href="#cb49-7" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb49-8"><a href="#cb49-8" aria-hidden="true" tabindex="-1"></a>      <span class="fu">selectInput</span>(<span class="st">"variavel"</span>, <span class="st">"Selecione a variável:"</span>,</span>
+<span id="cb49-9"><a href="#cb49-9" aria-hidden="true" tabindex="-1"></a>                  <span class="at">choices =</span> <span class="fu">names</span>(dados)[<span class="fu">sapply</span>(dados, is.numeric)]),</span>
+<span id="cb49-10"><a href="#cb49-10" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb49-11"><a href="#cb49-11" aria-hidden="true" tabindex="-1"></a>      <span class="fu">selectInput</span>(<span class="st">"cor"</span>, <span class="st">"Escolha a cor:"</span>,</span>
+<span id="cb49-12"><a href="#cb49-12" aria-hidden="true" tabindex="-1"></a>                  <span class="at">choices =</span> <span class="fu">c</span>(<span class="st">"blue"</span>, <span class="st">"red"</span>, <span class="st">"green"</span>, <span class="st">"black"</span>)),</span>
+<span id="cb49-13"><a href="#cb49-13" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb49-14"><a href="#cb49-14" aria-hidden="true" tabindex="-1"></a>      <span class="fu">numericInput</span>(<span class="st">"xmin"</span>, <span class="st">"Limite inferior X:"</span>, <span class="at">value =</span> <span class="dv">1</span>),</span>
+<span id="cb49-15"><a href="#cb49-15" aria-hidden="true" tabindex="-1"></a>      <span class="fu">numericInput</span>(<span class="st">"xmax"</span>, <span class="st">"Limite superior X:"</span>, <span class="at">value =</span> <span class="dv">100</span>),</span>
+<span id="cb49-16"><a href="#cb49-16" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb49-17"><a href="#cb49-17" aria-hidden="true" tabindex="-1"></a>      <span class="fu">numericInput</span>(<span class="st">"ymin"</span>, <span class="st">"Limite inferior Y:"</span>, <span class="at">value =</span> <span class="dv">0</span>),</span>
+<span id="cb49-18"><a href="#cb49-18" aria-hidden="true" tabindex="-1"></a>      <span class="fu">numericInput</span>(<span class="st">"ymax"</span>, <span class="st">"Limite superior Y:"</span>, <span class="at">value =</span> <span class="dv">100000</span>)</span>
+<span id="cb49-19"><a href="#cb49-19" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb49-20"><a href="#cb49-20" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb49-21"><a href="#cb49-21" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mainPanel</span>(</span>
+<span id="cb49-22"><a href="#cb49-22" aria-hidden="true" tabindex="-1"></a>      <span class="fu">plotOutput</span>(<span class="st">"grafico"</span>)</span>
+<span id="cb49-23"><a href="#cb49-23" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb49-24"><a href="#cb49-24" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb49-25"><a href="#cb49-25" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb49-26"><a href="#cb49-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-27"><a href="#cb49-27" aria-hidden="true" tabindex="-1"></a>server <span class="ot">&lt;-</span> <span class="cf">function</span>(input, output) {</span>
+<span id="cb49-28"><a href="#cb49-28" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb49-29"><a href="#cb49-29" aria-hidden="true" tabindex="-1"></a>  output<span class="sc">$</span>grafico <span class="ot">&lt;-</span> <span class="fu">renderPlot</span>({</span>
+<span id="cb49-30"><a href="#cb49-30" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb49-31"><a href="#cb49-31" aria-hidden="true" tabindex="-1"></a>    var <span class="ot">&lt;-</span> dados[[input<span class="sc">$</span>variavel]]</span>
+<span id="cb49-32"><a href="#cb49-32" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb49-33"><a href="#cb49-33" aria-hidden="true" tabindex="-1"></a>    df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">x =</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(var), <span class="at">y =</span> var)</span>
+<span id="cb49-34"><a href="#cb49-34" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb49-35"><a href="#cb49-35" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggplot</span>(df, <span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">y =</span> y)) <span class="sc">+</span></span>
+<span id="cb49-36"><a href="#cb49-36" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_line</span>(<span class="at">color =</span> input<span class="sc">$</span>cor) <span class="sc">+</span></span>
+<span id="cb49-37"><a href="#cb49-37" aria-hidden="true" tabindex="-1"></a>      <span class="fu">xlim</span>(input<span class="sc">$</span>xmin, input<span class="sc">$</span>xmax) <span class="sc">+</span></span>
+<span id="cb49-38"><a href="#cb49-38" aria-hidden="true" tabindex="-1"></a>      <span class="fu">ylim</span>(input<span class="sc">$</span>ymin, input<span class="sc">$</span>ymax) <span class="sc">+</span></span>
+<span id="cb49-39"><a href="#cb49-39" aria-hidden="true" tabindex="-1"></a>      <span class="fu">labs</span>(<span class="at">title =</span> <span class="fu">paste</span>(<span class="st">"Gráfico de"</span>, input<span class="sc">$</span>variavel),</span>
+<span id="cb49-40"><a href="#cb49-40" aria-hidden="true" tabindex="-1"></a>           <span class="at">x =</span> <span class="st">"Índice"</span>,</span>
+<span id="cb49-41"><a href="#cb49-41" aria-hidden="true" tabindex="-1"></a>           <span class="at">y =</span> input<span class="sc">$</span>variavel)</span>
+<span id="cb49-42"><a href="#cb49-42" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb49-43"><a href="#cb49-43" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb49-44"><a href="#cb49-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-45"><a href="#cb49-45" aria-hidden="true" tabindex="-1"></a><span class="fu">shinyApp</span>(<span class="at">ui =</span> ui, <span class="at">server =</span> server)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<p></p><div style="width: 100% ; height: 400px ; text-align: center; box-sizing: border-box; -moz-box-sizing: border-box; -webkit-box-sizing: border-box;" class="muted well">Shiny applications not supported in static R Markdown documents</div><p></p>
+</div>
+</div>
+<p><img src="shiny-dashboard.png" class="img-fluid"></p>
 </section>
 
 </main>
