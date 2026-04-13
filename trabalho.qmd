@@ -17,6 +17,12 @@ execute:
   message: false
 ---
 
+# Publicação
+
+Este projeto está disponivel no github: https://github.com/echer/26E1-infnet-trabalho-pd-analise-exploratoria-de-dados.git
+
+Esta disponível também no RPUB: <https://rpubs.com/alanecher/1420896>
+
 # Escolha da Base de Dados
 
 A base escolhida foi o dataset de Detecção de Dengue (dados clinicos) - Disponível no kaggle: <https://www.kaggle.com/datasets/aravind3505/dengue-detection-dataset-clinical-data>
