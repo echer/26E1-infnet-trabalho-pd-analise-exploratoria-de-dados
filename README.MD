@@ -4,7 +4,7 @@ Este projeto está disponivel no github: https://github.com/echer/26E1-infnet-tr
 
 exploratoria-de-dados.git
 
-Esta disponível também no RPUB: https://rpubs.com/alanecher/
+Esta disponível também no RPUB: https://rpubs.com/alanecher/1420896
 
 # 2 Escolha da Base de Dados
 
